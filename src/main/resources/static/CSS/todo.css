@@ -162,6 +162,8 @@ button {
  background: #fae3d9;
  height: 100vh;
  justify-content: center;
+ padding-top: 150px;
+ padding-bottom: 150px;
 }
 
 .todo_header {
