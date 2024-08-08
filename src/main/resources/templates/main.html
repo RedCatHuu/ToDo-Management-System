@@ -1,27 +1,23 @@
 
-
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 <meta charset="UTF-8">
 <title>UserPage</title>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
- rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" type="text/css" th:href="@{/css/todo.css}">
 </head>
 <body>
+	
  <header class="header fixed">
-  <form method="post" th:action="@{/logout}" name="logout">
-   <a href="javascript:logout.submit()" class="text">ログアウト</a>
-  </form>
-  <div class="border"></div>
-  <a th:href="@{/main}" class="text">カレンダー</a>
-  <div class="border"></div>
-  <a
-   th:href="@{/main/create/{date}(date=${#calendars.format(#calendars.createNow(), 'yyyy-MM-dd')})}"
-   class="text">登録</a>
+	 <form method="post" th:action="@{/logout}" name="logout">
+	 	<a href="javascript:logout.submit()" class="text">ログアウト</a>
+	 </form>
+	 <div class="border"></div>
+	 	<a th:href="@{/main}" class="text">カレンダー</a>
+	 <div class="border"></div>
+	 <a th:href="@{/main/create/{date}(date=${#calendars.format(#calendars.createNow(), 'yyyy-MM-dd')})}" class="text">登録</a>
  </header>
 
  <div class="todo sd">

@@ -2,23 +2,64 @@ package com.dmm.task.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Controller
-public class Task {
+import com.dmm.task.data.entity.Task;
+import com.dmm.task.data.repository.TaskRepository;
+import com.dmm.task.form.TaskForm;
+import com.dmm.task.service.AccountUserDetails;
 
-    @RequestMapping("/create")
-    public String index() {
-        return "create";
-    }
+
+@Controller
+public class TaskController {
+	
+	@Autowired
+	private TaskRepository repo;
+
+	@GetMapping("/main/create/{date}")
+	public String newPost() {
+		return "/create";
+	}
+	
+	@PostMapping("/main/create")
+	public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
+			@AuthenticationPrincipal AccountUserDetails user, Model model) {
+		// バリデーションの結果、エラーがあるかどうかチェック
+		if (bindingResult.hasErrors()) {
+			// エラーがある場合は投稿登録画面を返す
+			List<Task> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+			model.addAttribute("task", list);
+			model.addAttribute("taskForm", taskForm);
+			return "/create";
+		}
+
+		Task task = new Task();
+		task.setName(user.getName());
+		task.setTitle(taskForm.getTitle());
+		task.setText(taskForm.getText());
+		task.setDate(LocalDateTime.now());
+
+		repo.save(task);
+		
+	    return "redirect:/main";
+	}
+
 
     @RequestMapping("/edit")
     public String test() {

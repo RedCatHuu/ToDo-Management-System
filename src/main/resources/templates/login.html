@@ -15,21 +15,25 @@
     <div th:if="${param.error}">
      <div>UserNameまたは、Passwordが違います。</div>
     </div>
-    <form method="post" th:action="@{/authenticate}"
-     style="width: 400px">
+    
+    <form method="post" th:action="@{/authenticate}" style="width: 400px">
+		
      <div class="form_box_inner">
       <p class="text sd">ユーザーID</p>
-      <input class="item" type="text" id="userName" name="userName">
+      <input class="item" type="text" id="userName" name="userName" autofocus>
      </div>
+     
      <div class="form_box_inner">
       <p class="text sd">パスワード</p>
-      <input class="item sd" type="password" id="password"
-       name="password">
+      <input class="item sd" type="password" id="password" name="password">
      </div>
+     
      <button class="form_button sd">
       <p class="form_button_text sd">サインイン</p>
      </button>
+     
     </form>
+    
    </div>
   </div>
  </div>
