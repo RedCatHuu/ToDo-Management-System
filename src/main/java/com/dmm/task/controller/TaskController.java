@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -89,6 +91,16 @@ public class TaskController {
         model.addAttribute("prev", prev);
         model.addAttribute("next", next);
         
+        // タスクを取得し、日付をキーにしたMapに変換
+        List<Task> tasksList = repo.findAll();
+        Map<LocalDate, List<Task>> tasksMap = new HashMap<>();
+        for (Task task : tasksList) {
+            LocalDate taskDate = task.getDate().toLocalDate();
+            tasksMap.computeIfAbsent(taskDate, k -> new ArrayList<>()).add(task);
+        }
+        model.addAttribute("tasks", tasksMap);
+        
+        // カレンダー用のデータを生成
         // 1. 2次元表になるので、ListのListを用意する
         List<List<LocalDate>> weeks = new ArrayList<>();
 
@@ -131,6 +143,8 @@ public class TaskController {
         }
 
         model.addAttribute("matrix", weeks);
+        
+
 
         return "main";
     }
