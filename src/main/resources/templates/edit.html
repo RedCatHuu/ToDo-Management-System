@@ -22,6 +22,7 @@
  <div class="form_back sd">
   <div class="form sd">
    <div class="title sd">Edit</div>
+   
    <form method="post" th:action="@{/main/edit/{id}(id=${task.id})}">
     <div class="sd">
      <div class="form_row sd">
@@ -58,6 +59,7 @@
      </button>
     </div>
    </form>
+   
    <form th:action="@{'/main/delete/' + ${task.id}}" th:method="post"
     class="form_box sd" style="width: 100%; max-width: 100%">
     <button class="form_button delete sd">

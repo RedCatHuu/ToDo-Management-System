@@ -18,6 +18,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,9 +37,19 @@ public class TaskController {
 	private TaskRepository repo;
 
 	@GetMapping("/main/create/{date}")
-	public String newPost() {
-		return "/create";
+	public String newPost(@PathVariable String date, Model model) {
+
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate parsedDate = LocalDate.parse(date, formatter);
+		LocalDateTime dateTime = parsedDate.atTime(0, 0);
+		
+		model.addAttribute("date", dateTime);
+	    model.addAttribute("taskForm", new TaskForm());
+	    
+	    return "create";
 	}
+
+
 	
 	@PostMapping("/main/create")
 	public String create(@Validated TaskForm taskForm, BindingResult bindingResult,
@@ -47,15 +59,17 @@ public class TaskController {
 			// エラーがある場合は投稿登録画面を返す
 			List<Task> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 			model.addAttribute("task", list);
-			model.addAttribute("taskForm", taskForm);
+	        model.addAttribute("taskForm", taskForm);
 			return "/create";
 		}
+		LocalDate date = taskForm.getDate();
+		LocalDateTime dateTime = date.atTime(0, 0);
 
 		Task task = new Task();
-		task.setName(user.getName());
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
-		task.setDate(LocalDateTime.now());
+		task.setName(user.getName());
+		task.setDate(dateTime);
 
 		repo.save(task);
 		
@@ -63,10 +77,36 @@ public class TaskController {
 	}
 
 
-    @RequestMapping("/edit")
-    public String test() {
+	@GetMapping("/main/edit/{id}")
+	public String showEditForm(@PathVariable Long id, Model model) {
+	    Task task = repo.findById(id)
+	                   .orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
+	    model.addAttribute("task", task);
         return "edit";
     }
+	
+	@PostMapping("/main/edit/{id}")
+	public String updateTask(@PathVariable("id") Long id, @ModelAttribute TaskForm taskForm, BindingResult bindingResult) {
+	    if (bindingResult.hasErrors()) {
+	        return "edit";
+	    }
+
+	    Task existingTask = repo.findById(id)
+	        .orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
+	    
+		LocalDate date =taskForm.getDate();
+		LocalDateTime dateTime = date.atTime(0,0);
+		
+	    existingTask.setTitle(taskForm.getTitle());
+	    existingTask.setDate(dateTime);
+	    existingTask.setText(taskForm.getText());
+	    existingTask.setDone(taskForm.isDone());
+
+	    repo.save(existingTask);
+
+	    return "redirect:/main";
+	}
+
 
     @RequestMapping("/main")
     public String main(@RequestParam(value = "date", required = false) String date, Model model) {
@@ -94,9 +134,8 @@ public class TaskController {
         // タスクを取得し、日付をキーにしたMapに変換
         List<Task> tasksList = repo.findAll();
         Map<LocalDate, List<Task>> tasksMap = new HashMap<>();
-        for (Task task : tasksList) {
-            LocalDate taskDate = task.getDate().toLocalDate();
-            tasksMap.computeIfAbsent(taskDate, k -> new ArrayList<>()).add(task);
+        for (Task task : tasksList) {            
+            tasksMap.computeIfAbsent(task.getDate().toLocalDate(), k -> new ArrayList<>()).add(task);
         }
         model.addAttribute("tasks", tasksMap);
         
