@@ -107,7 +107,14 @@ public class TaskController {
 	    return "redirect:/main";
 	}
 
+	@PostMapping("/main/delete/{id}")
+	public String deleteTask(@PathVariable("id") Long id) {
+		Task task = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
+		repo.delete(task);
 
+		return "redirect:/main";
+	}
+	
     @RequestMapping("/main")
     public String main(@RequestParam(value = "date", required = false) String date, Model model, @AuthenticationPrincipal AccountUserDetails user) {
         LocalDate currentDate;
