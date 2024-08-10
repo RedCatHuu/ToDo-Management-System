@@ -67,6 +67,8 @@ button {
  flex-wrap: nowrap;
  height: 100vh;
  justify-content: center;
+ padding-top: 150px;
+ padding-bottom: 150px;
 }
 
 .form {
