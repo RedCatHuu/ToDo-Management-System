@@ -6,15 +6,14 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dmm.task.data.entity.Task;
+import com.dmm.task.data.entity.Users;
 import com.dmm.task.data.repository.TaskRepository;
 import com.dmm.task.form.TaskForm;
 import com.dmm.task.service.AccountUserDetails;
@@ -109,7 +109,7 @@ public class TaskController {
 
 
     @RequestMapping("/main")
-    public String main(@RequestParam(value = "date", required = false) String date, Model model) {
+    public String main(@RequestParam(value = "date", required = false) String date, Model model, @AuthenticationPrincipal AccountUserDetails user) {
         LocalDate currentDate;
 
         // 矢印で月を変えたときに使用。valueでdateに日付が格納されている。
@@ -131,12 +131,21 @@ public class TaskController {
         model.addAttribute("prev", prev);
         model.addAttribute("next", next);
         
-        // タスクを取得し、日付をキーにしたMapに変換
-        List<Task> tasksList = repo.findAll();
-        Map<LocalDate, List<Task>> tasksMap = new HashMap<>();
-        for (Task task : tasksList) {            
-            tasksMap.computeIfAbsent(task.getDate().toLocalDate(), k -> new ArrayList<>()).add(task);
+        // ログインユーザー情報
+        Users currentUser = user.getUser();
+        String roleName = "ROLE_" + currentUser.getRoleName();
+        
+        // admingかuserか判別
+        List<Task> tasksList;
+        if(roleName.equals("ROLE_ADMIN")) {
+        	tasksList = repo.findAll();
+        } else {
+        	tasksList = repo.findByName(currentUser.getName());
         }
+        
+        // タスクを取得し、日付をキーにしたMapに変換
+		LinkedMultiValueMap<LocalDate, Task> tasksMap = new LinkedMultiValueMap<>();
+		tasksList.forEach(task -> tasksMap.add(task.getDate().toLocalDate(), task));
         model.addAttribute("tasks", tasksMap);
         
         // カレンダー用のデータを生成
