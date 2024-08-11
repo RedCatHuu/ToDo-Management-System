@@ -142,13 +142,19 @@ public class TaskController {
         Users currentUser = user.getUser();
         String roleName = "ROLE_" + currentUser.getRoleName();
         
+        // 現在の月の開始日と終了日を計算
+        LocalDate startOfMonth = currentDate.withDayOfMonth(1);
+        LocalDate endOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
+        LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+        LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+        
         // admingかuserか判別
         List<Task> tasksList;
         if(roleName.equals("ROLE_ADMIN")) {
-        	tasksList = repo.findAll();
+            tasksList = repo.findByDateBetween(startDateTime, endDateTime);
         } else {
-        	tasksList = repo.findByName(currentUser.getName());
-        }
+        	tasksList = repo.findByNameAndDateBetween(currentUser.getName(), startDateTime, endDateTime);
+        }     
         
         // タスクを取得し、日付をキーにしたMapに変換
 		LinkedMultiValueMap<LocalDate, Task> tasksMap = new LinkedMultiValueMap<>();
