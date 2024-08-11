@@ -142,25 +142,33 @@ public class TaskController {
         Users currentUser = user.getUser();
         String roleName = "ROLE_" + currentUser.getRoleName();
         
-        // 現在の月の開始日と終了日を計算
-        LocalDate startOfMonth = currentDate.withDayOfMonth(1);
-        LocalDate endOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
+        // 該当月の開始日と終了日を取得
+        LocalDate firstDayOfMonth = currentDate.withDayOfMonth(1);
+        LocalDate lastDayOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
 
-        // 当月の前後1週間の開始日と終了日を追加
-        LocalDate startOfPeriod = startOfMonth.minusWeeks(1);
-        LocalDate endOfPeriod = endOfMonth.plusWeeks(1);
+        // カレンダー表示のための開始日を計算（最初の日曜日）
+        LocalDate startOfCalendar = firstDayOfMonth.with(DayOfWeek.SUNDAY);
+        if (startOfCalendar.isAfter(firstDayOfMonth)) {
+            startOfCalendar = startOfCalendar.minusWeeks(1);
+        }
+
+        // カレンダー表示のための終了日を計算（最後の土曜日）
+        LocalDate endOfCalendar = lastDayOfMonth.with(DayOfWeek.SATURDAY);
+        if (endOfCalendar.isBefore(lastDayOfMonth)) {
+            endOfCalendar = endOfCalendar.plusWeeks(1);
+        }
 
         // LocalDateTimeに変換
-        LocalDateTime startDateTime = startOfPeriod.atStartOfDay();
-        LocalDateTime endDateTime = endOfPeriod.atTime(23, 59, 59);
+        LocalDateTime startDateTime = startOfCalendar.atStartOfDay();
+        LocalDateTime endDateTime = endOfCalendar.atTime(23, 59, 59);
         
         // admingかuserか判別
         List<Task> tasksList;
         if(roleName.equals("ROLE_ADMIN")) {
             tasksList = repo.findByDateBetween(startDateTime, endDateTime);
         } else {
-        	tasksList = repo.findByNameAndDateBetween(currentUser.getName(), startDateTime, endDateTime);
-        }     
+            tasksList = repo.findByNameAndDateBetween(currentUser.getName(), startDateTime, endDateTime);
+        }
         
         // タスクを取得し、日付をキーにしたMapに変換
 		LinkedMultiValueMap<LocalDate, Task> tasksMap = new LinkedMultiValueMap<>();
@@ -176,7 +184,7 @@ public class TaskController {
 
         // 3. その月の1日のLocalDateを取得する
         YearMonth currentMonth = YearMonth.from(currentDate);
-        LocalDate firstDayOfMonth = currentMonth.atDay(1);
+        // LocalDate firstDayOfMonth = currentMonth.atDay(1);
 
         // 4. 曜日を表すDayOfWeekを取得し、前月分の日付を求める
         DayOfWeek firstDayOfWeek = firstDayOfMonth.getDayOfWeek();
@@ -200,8 +208,8 @@ public class TaskController {
         }
 
         // 6. 次月の日付を追加して行数を揃える
-        DayOfWeek lastDayOfMonth = currentMonth.atEndOfMonth().getDayOfWeek();
-        if(lastDayOfMonth != DayOfWeek.SATURDAY ) {
+        DayOfWeek lastWeek = currentMonth.atEndOfMonth().getDayOfWeek();
+        if(lastWeek != DayOfWeek.SATURDAY ) {
 	        while (week.size() < 7) {
 	            week.add(day);
 	            day = day.plusDays(1);
