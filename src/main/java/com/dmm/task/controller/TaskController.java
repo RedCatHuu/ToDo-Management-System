@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.dmm.task.data.entity.Task;
+import com.dmm.task.data.entity.Tasks;
 import com.dmm.task.data.entity.Users;
-import com.dmm.task.data.repository.TaskRepository;
+import com.dmm.task.data.repository.TasksRepository;
 import com.dmm.task.form.TaskForm;
 import com.dmm.task.service.AccountUserDetails;
 
@@ -34,7 +34,7 @@ import com.dmm.task.service.AccountUserDetails;
 public class TaskController {
 	
 	@Autowired
-	private TaskRepository repo;
+	private TasksRepository repo;
 
 	@GetMapping("/main/create/{date}")
 	public String newPost(@PathVariable String date, Model model) {
@@ -57,7 +57,7 @@ public class TaskController {
 		// バリデーションの結果、エラーがあるかどうかチェック
 		if (bindingResult.hasErrors()) {
 			// エラーがある場合は投稿登録画面を返す
-			List<Task> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+			List<Tasks> list = repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
 			model.addAttribute("task", list);
 	        model.addAttribute("taskForm", taskForm);
 			return "/create";
@@ -65,7 +65,7 @@ public class TaskController {
 		LocalDate date = taskForm.getDate();
 		LocalDateTime dateTime = date.atTime(0, 0);
 
-		Task task = new Task();
+		Tasks task = new Tasks();
 		task.setTitle(taskForm.getTitle());
 		task.setText(taskForm.getText());
 		task.setName(user.getName());
@@ -79,7 +79,7 @@ public class TaskController {
 
 	@GetMapping("/main/edit/{id}")
 	public String showEditForm(@PathVariable Long id, Model model) {
-	    Task task = repo.findById(id)
+	    Tasks task = repo.findById(id)
 	                   .orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
 	    model.addAttribute("task", task);
         return "edit";
@@ -91,7 +91,7 @@ public class TaskController {
 	        return "edit";
 	    }
 
-	    Task existingTask = repo.findById(id)
+	    Tasks existingTask = repo.findById(id)
 	        .orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
 	    
 		LocalDate date =taskForm.getDate();
@@ -109,7 +109,7 @@ public class TaskController {
 
 	@PostMapping("/main/delete/{id}")
 	public String deleteTask(@PathVariable("id") Long id) {
-		Task task = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
+		Tasks task = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid task Id:" + id));
 		repo.delete(task);
 
 		return "redirect:/main";
@@ -163,7 +163,7 @@ public class TaskController {
         LocalDateTime endDateTime = endOfCalendar.atTime(23, 59, 59);
         
         // admingかuserか判別
-        List<Task> tasksList;
+        List<Tasks> tasksList;
         if(roleName.equals("ROLE_ADMIN")) {
             tasksList = repo.findByDateBetween(startDateTime, endDateTime);
         } else {
@@ -171,7 +171,7 @@ public class TaskController {
         }
         
         // タスクを取得し、日付をキーにしたMapに変換
-		LinkedMultiValueMap<LocalDate, Task> tasksMap = new LinkedMultiValueMap<>();
+		LinkedMultiValueMap<LocalDate, Tasks> tasksMap = new LinkedMultiValueMap<>();
 		tasksList.forEach(task -> tasksMap.add(task.getDate().toLocalDate(), task));
         model.addAttribute("tasks", tasksMap);
         

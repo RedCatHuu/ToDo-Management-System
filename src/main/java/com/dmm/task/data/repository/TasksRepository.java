@@ -5,14 +5,14 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.dmm.task.data.entity.Task;
+import com.dmm.task.data.entity.Tasks;
 
-public interface TaskRepository extends JpaRepository<Task, Long> {
-	List<Task> findByName(String name);
+public interface TasksRepository extends JpaRepository<Tasks, Long> {
+	List<Tasks> findByName(String name);
 	
 	// 期間とユーザー名でフィルタリング↓タスクを取得する
-    List<Task> findByNameAndDateBetween(String name, LocalDateTime start, LocalDateTime end);
+    List<Tasks> findByNameAndDateBetween(String name, LocalDateTime start, LocalDateTime end);
     
     // 期間でフィルタリングして、全てのタスクを取得する (管理者用)
-    List<Task> findByDateBetween(LocalDateTime start, LocalDateTime end);
+    List<Tasks> findByDateBetween(LocalDateTime start, LocalDateTime end);
 }
