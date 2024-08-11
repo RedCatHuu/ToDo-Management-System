@@ -145,8 +145,14 @@ public class TaskController {
         // 現在の月の開始日と終了日を計算
         LocalDate startOfMonth = currentDate.withDayOfMonth(1);
         LocalDate endOfMonth = currentDate.withDayOfMonth(currentDate.lengthOfMonth());
-        LocalDateTime startDateTime = startOfMonth.atStartOfDay();
-        LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+
+        // 当月の前後1週間の開始日と終了日を追加
+        LocalDate startOfPeriod = startOfMonth.minusWeeks(1);
+        LocalDate endOfPeriod = endOfMonth.plusWeeks(1);
+
+        // LocalDateTimeに変換
+        LocalDateTime startDateTime = startOfPeriod.atStartOfDay();
+        LocalDateTime endDateTime = endOfPeriod.atTime(23, 59, 59);
         
         // admingかuserか判別
         List<Task> tasksList;
